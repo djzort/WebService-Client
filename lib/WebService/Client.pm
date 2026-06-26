@@ -203,7 +203,7 @@ sub prepare_response {
 sub _url {
     my ($self, $path) = @_;
     croak 'The path is missing' unless defined $path;
-    return $path =~ m{^https?://} ? $path : $self->base_url . $path;
+    return $path =~ m{^(?:https?:)?//}i ? $path : $self->base_url . $path;
 }
 
 sub _headers {

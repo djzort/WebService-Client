@@ -175,6 +175,28 @@ subtest 'GET with url-like paths' => sub {
     'https://... treated as absolute URL, base_url bypassed';
 };
 
+subtest '_url case-insensitive scheme' => sub {
+  my $useragent = Test::LWP::UserAgent->new;
+  $useragent->map_response(
+    qr{.*},
+    HTTP::Response->new('200', 'OK', ['Content-Type' => 'application/json'], '{}'),
+  );
+
+  my $webservice = WebService::Foo->new(ua => $useragent);
+
+  $webservice->get('HTTP://foo.com/api');
+  my $url = $useragent->last_http_request_sent->uri;
+  is "$url", 'HTTP://foo.com/api', 'uppercase HTTP:// treated as absolute';
+
+  $webservice->get('Http://foo.com/api');
+  $url = $useragent->last_http_request_sent->uri;
+  is "$url", 'Http://foo.com/api', 'mixed-case http:// treated as absolute';
+
+  $webservice->get('HTTPS://foo.com/api');
+  $url = $useragent->last_http_request_sent->uri;
+  is "$url", 'HTTPS://foo.com/api', 'uppercase HTTPS:// treated as absolute';
+};
+
 subtest 'invalid headers are rejected' => sub {
   my $useragent = Test::LWP::UserAgent->new;
   $useragent->map_response(
